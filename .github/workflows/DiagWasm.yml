@@ -1,0 +1,35 @@
+name: Diag wasm_eh only
+on:
+  push:
+    branches:
+      - diag-openfilegdb-wasm
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  packages: read
+
+jobs:
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-latest
+    outputs:
+      runners: ${{ steps.runners.outputs.runners }}
+    steps:
+      - name: Detect runners
+        id: runners
+        uses: duckdb/duckdb-ci/detect-runners@main
+
+  build:
+    name: Build wasm_eh
+    needs: prepare
+    uses: duckdb/extension-ci-tools/.github/workflows/build.yml@main
+    with:
+      groups: |
+        main:
+          config: extension_config.cmake
+          toolchain: main
+      exclude_archs: 'linux_amd64;linux_amd64_musl;linux_arm64;linux_arm64_musl;osx_amd64;osx_arm64;windows_amd64;windows_amd64_mingw;windows_amd64_rtools;windows_arm64;wasm_mvp;wasm_threads'
+      runners: ${{ needs.prepare.outputs.runners }}
+      reduced_ci_mode: disabled
